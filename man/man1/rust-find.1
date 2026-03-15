@@ -1,0 +1,192 @@
+.Dd March 15, 2026
+.Dt RUST-FIND 1
+.Os
+.Sh NAME
+.Nm rust-find
+.Nd faithful Rust port of FreeBSD find(1)
+.Sh SYNOPSIS
+.Nm
+.Op Fl H | Fl L | Fl P
+.Op Fl d
+.Op Fl x
+.Ar path ...
+.Op Ar expression
+.Sh DESCRIPTION
+.Nm
+is a faithful Rust port of FreeBSD's
+.Xr find 1 .
+It walks one or more file hierarchies and evaluates a predicate expression for
+each entry.
+The command-line structure follows the BSD utility closely: start paths appear
+first, followed by the expression.
+.Pp
+Adjacent primaries are treated as an implicit logical AND.
+The operators
+.Cm \&!
+and
+.Cm -not
+negate an expression,
+.Cm -o
+and
+.Cm -or
+perform logical OR, and parentheses may be used for grouping.
+.Pp
+The binary in this repository is named
+.Nm ,
+but the interface is designed to match FreeBSD
+.Xr find 1
+for the implemented feature set.
+.Sh OPTIONS
+.Bl -tag -width "-maxdepth Ar depth"
+.It Fl H
+Accept command-line symlinks in the BSD-compatible option set.
+In the current implementation this flag is parsed but does not yet produce
+distinct traversal behavior.
+.It Fl L
+Follow symbolic links during traversal.
+.It Fl P
+Do not follow symbolic links.
+This is the default traversal mode.
+.It Fl d
+Visit directory contents before the directory itself.
+.It Fl x
+Accept the BSD-compatible no-cross-device flag.
+In the current implementation this flag is parsed but cross-device pruning is
+not yet enforced.
+.El
+.Sh PRIMARIES
+.Bl -tag -width "-mindepth Ar depth"
+.It Fl name Ar pattern
+Match the basename of the current entry against a shell-style glob.
+.It Fl iname Ar pattern
+Case-insensitive variant of
+.Fl name .
+.It Fl path Ar pattern
+Match the full path against a shell-style glob.
+.It Fl ipath Ar pattern
+Case-insensitive variant of
+.Fl path .
+.It Fl wholename Ar pattern
+Alias for
+.Fl path .
+.It Fl iwholename Ar pattern
+Alias for
+.Fl ipath .
+.It Fl type Ar f | d | l | b | c | p | s
+Match by file type.
+On non-Unix targets the special Unix-only types
+.Cm b ,
+.Cm c ,
+.Cm p ,
+and
+.Cm s
+evaluate to false rather than causing a build failure.
+.It Fl empty
+Match empty regular files and empty directories.
+.It Fl maxdepth Ar depth
+Match only entries at depth less than or equal to
+.Ar depth .
+.It Fl mindepth Ar depth
+Match only entries at depth greater than or equal to
+.Ar depth .
+.It Fl size Ar value
+Match by size.
+The numeric value may be followed by one of the suffixes
+.Cm c ,
+.Cm k ,
+.Cm M ,
+or
+.Cm G .
+Without a suffix, sizes are interpreted in 512-byte blocks.
+The optional
+.Cm +
+and
+.Cm -
+prefixes mean greater than or less than.
+.It Fl mtime Ar n
+Match by age in whole days.
+The optional
+.Cm +
+and
+.Cm -
+prefixes mean greater than or less than.
+.It Fl newer Ar file
+Match entries newer than
+.Ar file .
+.It Fl print
+Print the path followed by a newline.
+.It Fl print0
+Print the path followed by a NUL byte.
+.It Fl delete
+Delete the matched file or empty directory.
+.It Fl prune
+Evaluate true for the current entry and mark it for pruning.
+In the current implementation the predicate is parsed and evaluated, but the
+active walker does not yet stop descending into that directory.
+.It Fl true
+Always evaluate true.
+.It Fl false
+Always evaluate false.
+.El
+.Sh OPERATORS
+.Bl -tag -width "-and"
+.It Ar expr1 expr2
+Implicit logical AND.
+.It Fl a , Fl and
+Explicit logical AND.
+.It Fl o , Fl or
+Logical OR.
+.It Cm \&! , Fl not
+Logical NOT.
+.It Pq Ar expression
+Group subexpressions.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Pp
+The command exits with status 0 on success and non-zero if traversal or
+expression handling reports an error.
+.Sh EXAMPLES
+.Bl -bullet -compact
+.It
+Find Rust source files under the current directory:
+.Bd -literal -offset indent
+rust-find . -name "*.rs"
+.Ed
+.It
+Find a file ignoring case:
+.Bd -literal -offset indent
+rust-find . -iname "main.rs"
+.Ed
+.It
+Restrict traversal depth:
+.Bd -literal -offset indent
+rust-find . -maxdepth 2 -type f
+.Ed
+.It
+Combine predicates with OR:
+.Bd -literal -offset indent
+rust-find . "(" -name "*.rs" -o -name "*.toml" ")"
+.Ed
+.El
+.Sh COMPATIBILITY
+.Nm
+is positioned as a faithful port of FreeBSD's
+.Xr find 1 ,
+meaning the implementation is deliberately anchored to the FreeBSD interface
+and semantics rather than to GNU extensions or a new command shape.
+.Pp
+The current codebase does not yet implement every edge case of the original
+utility.
+Documented gaps presently include distinct
+.Fl H
+handling, enforced
+.Fl x
+behavior, and traversal pruning for
+.Fl prune .
+.Sh SEE ALSO
+.Xr find 1
+.Sh AUTHORS
+Ported to Rust from the FreeBSD
+.Pa usr.bin/find/
+utility lineage.

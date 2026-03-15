@@ -2,6 +2,14 @@
 name = "rust-find"
 version = "0.1.0"
 edition = "2024"
+description = "Faithful Rust port of FreeBSD find(1)"
+license = "BSD-3-Clause"
+readme = "README.md"
+documentation = "https://docs.rs/rust-find"
+homepage = "https://github.com/ktfth/rust-find"
+repository = "https://github.com/ktfth/rust-find"
+keywords = ["find", "freebsd", "bsd", "cli", "filesystem"]
+categories = ["command-line-utilities", "filesystem"]
 
 [dependencies]
 walkdir = "2"
